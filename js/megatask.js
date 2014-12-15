@@ -2,10 +2,31 @@ var Megatask = function() {
   function Megatask() {
     this.tasks = [];
     var self = this;
-    $('#new_task').submit(function(ev){
+    var supportsStorage = function(){
+      try {
+        return 'localStorage' in window && window['localStorage'] !=null;
+      } catch(e) {
+        return false;
+      }
+
+    };
+
+    var addTask = function(taskName){
+        self.tasks.push(taskName);
+        $('#tasks').append('<li class="list-group-item">' + taskName + '</li>');
+        saveTasks();
+    };
+    var saveTasks = function(){
+      if (supportsStorage()){
+        localStorage.tasks = JSON.stringify(self.tasks);
+      }
+    }
+
+    $('#new_task').submit(function(ev) {
       ev.preventDefault();
-      self.tasks.push(this.elements.task_name.value);
-      $('#tasks').append('<li>' + this.elements.task_name.value + '</li>');
+      var field = $(this.elements.task_name);
+      addTask(field.val());
+      field.val('');
     });
   }
   return Megatask;
