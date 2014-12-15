@@ -10,7 +10,11 @@ var Megatask = function() {
       }
 
     };
-
+    var loadTasks = function() {
+      if(supportsStorage() && localStorage.tasks) {
+        self.tasks = JSON.parse(localStorage.tasks);
+      }
+    };
     var addTask = function(taskName){
         self.tasks.push(taskName);
         $('#tasks').append('<li class="list-group-item">' + taskName + '</li>');
@@ -20,7 +24,7 @@ var Megatask = function() {
       if (supportsStorage()){
         localStorage.tasks = JSON.stringify(self.tasks);
       }
-    }
+    };
 
     $('#new_task').submit(function(ev) {
       ev.preventDefault();
@@ -28,6 +32,8 @@ var Megatask = function() {
       addTask(field.val());
       field.val('');
     });
+
+    loadTasks();
   }
   return Megatask;
 }();
