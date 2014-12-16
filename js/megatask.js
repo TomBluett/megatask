@@ -77,8 +77,18 @@ var Megatask = function() {
     });
 
     $('#tasks').on('click', 'button.edit', function() {
+      var listItem = getListItemFromButton(this);
+      var id = getTaskIdFromListItem(listItem);
       var editForm = $('.edit_task.hidden').clone();
-
+      var task;
+      for (var i=0; i < self.tasks.length; i++) {
+        if (self.tasks[i].id.toString() === id) {
+          task = self.tasks[i];
+        }
+      }
+      editForm.find('input.task_name').val(task.name);
+      editForm.removeClass('hidden');
+      listItem.html(editForm);
     });
 
     loadTasks();

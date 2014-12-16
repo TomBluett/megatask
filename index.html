@@ -16,6 +16,7 @@
 </head>
 
 <body>
+
   <div class="well col-sm-6 col-sm-offset-3 col-xs-12">
     <h1>Megatask</h1>
     <ol class="list-group" id="tasks"></ol>
@@ -24,11 +25,13 @@
         <input type="text" name="task_name" class="form-control" placeholder="Enter a task">
         <input type="submit" value="Add Task" class="btn btn-sm btn-primary">
       </label>
+    </form>
   </div>
-  <form class="edit_task form-inline hidden"></form>
+  <form class="edit_task form-inline hidden">
     <input type="text" name="task_name form-control">
     <input type="submit" value="save" class="btn btn-sm btn-success">
     <button class="btn btn-sm btn-default cancel">cancel</button>
+  </form>
 
   <script src="js/jquery-2.1.1.js"></script>
   <script src="js/jquery-ui.min.js"></script>
