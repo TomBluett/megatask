@@ -3,48 +3,54 @@ var Megatask = function() {
     this.tasks = [];
     this.counter = 0;
     var self = this;
-    var supportsStorage = function(){
+    var supportsStorage = function() {
       try {
-        return 'localStorage' in window && window['localStorage'] !=null;
+        return 'localStorage' in window &&
+        window['localStorage'] != null;
       } catch(e) {
         return false;
       }
-
     };
     var loadTasks = function() {
-      if(supportsStorage() && localStorage.tasks) {
+      if (supportsStorage() && localStorage.tasks) {
+        // localStorage.tasks will be a string, looking
+        // something like this...
+        // '[{"name": "task 1", "completed": "false"}]'
         self.tasks = JSON.parse(localStorage.tasks);
-        var totalTasks=self.tasks.length
-        for(i=0; i < totalTasks; i++) {
-          var oldItem = createListItem(self.tasks[i]);
-          $('#tasks').append(oldItem);
+        for (var i=0; i < self.tasks.length; i++) {
+          var taskToAppend = self.tasks[i];
+          $('#tasks').append(createListItem(taskToAppend));
+          if (taskToAppend.id > self.counter) {
+            self.counter = taskToAppend.id;
+          }
         }
       }
     };
     var addTask = function(taskName, taskCompleted) {
-        taskCompleted = !!taskCompleted;
-        self.counter++;
-        var newTask = {
-          id: self.counter,
-          name: taskName,
-          completed: taskCompleted,
-        };
-        self.tasks.push(newTask);
-        var newItem = createListItem(newTask);
-        $('#tasks').append(newItem);
-        saveTasks();
+      taskCompleted = !!taskCompleted;
+      self.counter++;
+      var newTask = {
+        id: self.counter,
+        name: taskName,
+        completed: taskCompleted
+      };
+      self.tasks.push(newTask);
+      var newItem = createListItem(newTask);
+      $('#tasks').append(newItem);
+      saveTasks();
     };
     var createListItem = function(task) {
       var deleteButton, editButton, buttonGroup, label;
       label = '<label>' + task.name + '</label>';
-      deleteButton = '<button class="btn btn-sm btn-danger"><i class="fa fa-trash fa-lg"></i></button>';
-      editButton = '<button class="btn btn-sm btn-success edit">edit</button>';
-      buttonGroup = '<div class="btn-group">' + deleteButton + editButton + '</div>';
-      return '<li class="list-group-item" id="task_' + task.id + '""><div class="task">' + label +
-      buttonGroup + '</div></li>';
+      deleteButton = '<button class="btn btn-sm btn-danger"><i class="fa fa-trash-o fa-lg"></i></button>';
+      editButton = '<button class="btn btn-sm btn-success edit">Edit</button>';
+      buttonGroup = '<div class="btn-group">' + deleteButton +
+      editButton + '</div>';
+      return '<li class="list-group-item" id="task_' + task.id + '"><div class="task">' +
+      label + buttonGroup + '</div></li>';
     };
-    var saveTasks = function(){
-      if (supportsStorage()){
+    var saveTasks = function() {
+      if (supportsStorage()) {
         localStorage.tasks = JSON.stringify(self.tasks);
       }
     };
@@ -64,12 +70,13 @@ var Megatask = function() {
       addTask(field.val());
       field.val('');
     });
+
     $('#tasks').on('click', 'button.btn-danger', function() {
       var listItem = getListItemFromButton(this);
       var id = getTaskIdFromListItem(listItem);
       for (var i=0; i < self.tasks.length; i++) {
         if (self.tasks[i].id.toString() === id) {
-          self.tasks.splice(i, 1);
+          self.tasks.splice(i, 1); // remove 1 item at index i
         }
       }
       listItem.remove();
@@ -89,6 +96,22 @@ var Megatask = function() {
       editForm.find('input.task_name').val(task.name);
       editForm.removeClass('hidden');
       listItem.html(editForm);
+    });
+
+    $('#tasks').on('submit', '.edit_task', function(e) {
+      e.preventDefault();
+      $(this).find('.task_name').val();
+      var listItem = getListItemFromButton(this);
+      var id = getTaskIdFromListItem(listItem);
+      var task;
+      for (var i=0; i < self.tasks.length; i++) {
+        if (self.tasks[i].id.toString() === id) {
+          task = self.tasks[i];
+        }
+      }
+      task.name = $(this).find('.task_name').val();
+      saveTasks();
+      listItem.replaceWith(createListItem(task));
     });
 
     loadTasks();
