@@ -17,6 +17,9 @@ var Megatask = function() {
         // something like this...
         // '[{"name": "task 1", "completed": "false"}]'
         self.tasks = JSON.parse(localStorage.tasks);
+        self.tasks.sort(function(a, b) {
+          return a.position - b.position;
+        });
         for (var i=0; i < self.tasks.length; i++) {
           var taskToAppend = self.tasks[i];
           $('#tasks').append(createListItem(taskToAppend));
@@ -32,7 +35,8 @@ var Megatask = function() {
       var newTask = {
         id: self.counter,
         name: taskName,
-        completed: taskCompleted
+        completed: taskCompleted,
+        position: self.tasks.length + 1
       };
       self.tasks.push(newTask);
       var newItem = createListItem(newTask);
@@ -40,13 +44,14 @@ var Megatask = function() {
       saveTasks();
     };
     var createListItem = function(task) {
-      var deleteButton, editButton, buttonGroup, label;
-      label = '<label>' + task.name + '</label>';
+      var deleteButton, editButton, buttonGroup, label, checkbox;
+      checkbox = '<input type="checkbox"' + (task.completed ? ' checked' : '') +'>';
+      label = '<label class="checkbox-inline">' + checkbox + ' ' + task.name + '</label>';
       deleteButton = '<button class="btn btn-sm btn-danger"><i class="fa fa-trash-o fa-lg"></i></button>';
       editButton = '<button class="btn btn-sm btn-success edit">Edit</button>';
       buttonGroup = '<div class="btn-group">' + deleteButton +
       editButton + '</div>';
-      return '<li class="list-group-item" id="task_' + task.id + '"><div class="task">' +
+      return '<li class="list-group-item' + (task.completed ? ' completed' : '') + '" id="task_' + task.id + '"><div class="task">' +
       label + buttonGroup + '</div></li>';
     };
     var saveTasks = function() {
@@ -60,9 +65,29 @@ var Megatask = function() {
     };
 
     var getTaskIdFromListItem = function(listItem) {
-      var id = listItem.attr('id');
+      var id = $(listItem).attr('id');
       return id.substring(id.lastIndexOf('_') + 1);
     };
+
+    var getTaskFromElement = function(element) {
+      var id = getTaskIdFromListItem(element);
+      var task;
+      for (var i=0; i < self.tasks.length; i++) {
+        if (self.tasks[i].id.toString() === id) {
+          task = self.tasks[i];
+        }
+      }
+      return task;
+    };
+
+    var updatePositions = function() {
+      var orderedElementIds = $('#tasks').sortable('toArray');
+      $.each(orderedElementIds, function (index, elementID) {
+       var task = getTaskFromElement($('#' + elementID));
+       task.position = index + 1;
+      });
+    };
+
 
     $('#new_task').submit(function(ev) {
       ev.preventDefault();
@@ -98,6 +123,21 @@ var Megatask = function() {
       listItem.html(editForm);
     });
 
+    $('#tasks').on('click', 'button-cancel', function() {
+      $(this).find('.task_name').val();
+      var listItem = getListItemFromButton(this);
+      var id = getTaskIdFromListItem(listItem);
+      var task;
+      for (var i=0; i < self.tasks.length; i++) {
+        if (self.tasks[i].id.toString() === id) {
+          task = self.tasks[i];
+        }
+      }
+      task.name = $(this).find('.task_name').val();
+      saveTasks();
+      listItem.replaceWith(createListItem(task));
+    });
+
     $('#tasks').on('submit', '.edit_task', function(e) {
       e.preventDefault();
       $(this).find('.task_name').val();
@@ -114,7 +154,17 @@ var Megatask = function() {
       listItem.replaceWith(createListItem(task));
     });
 
-    loadTasks();
+    $('#tasks').on('click', ':checkbox', function(e) {
+      var listItem = getListItemFromButton(this);
+      var task = getTaskFromElement(listItem);
+      task.completed = e.currentTarget.checked;
+      listItem.toggleClass('completed');
+      saveTasks();
+    });
+    $('#tasks').sortable({
+      update: function () { updatePositions(); }
+  });
+  loadTasks();
   }
   return Megatask;
 }();
